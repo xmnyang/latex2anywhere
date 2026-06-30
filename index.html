@@ -6,72 +6,73 @@
 <title>LaTeX 公式转换</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
-.topbar{background:#fff;border-bottom:1px solid #e8e8e8;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
-.topbar h1{font-size:18px;color:#07c160;white-space:nowrap}
-.topbar .hint{font-size:12px;color:#999;margin-left:auto}
-.container{max-width:900px;margin:0 auto;padding:20px}
-.input-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px}
-#latexInput{width:100%;min-height:120px;border:2px solid #e0e0e0;border-radius:8px;padding:14px;font-family:'Consolas','Courier New',monospace;font-size:14px;resize:vertical;outline:none;line-height:1.7;tab-size:2}
-#latexInput:focus{border-color:#07c160}
-.btn-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
-.btn{border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500;transition:all .15s;padding:10px 22px}
-.btn-go{background:#07c160;color:#fff}.btn-go:hover{background:#06ad56}
-.btn-copy{background:#1a1a1a;color:#fff;font-size:16px;padding:14px 40px}.btn-copy:hover{background:#333}
-.btn-copy:active{transform:scale(.96)}
-.btn-clear{background:#f0f0f0;color:#555}.btn-clear:hover{background:#e0e0e0}
-.btn-hint{font-size:12px;color:#999;margin-left:4px}
-.status{display:inline-block;padding:4px 12px;border-radius:10px;font-size:12px;margin-left:8px}
-.status-ok{background:#e8f5e9;color:#2e7d32}
+body{font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;background:#111;color:#ccc;min-height:100vh}
+.topbar{background:#161616;border-bottom:1px solid #2a2a2a;padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.topbar h1{font-size:17px;color:#fff;white-space:nowrap;font-weight:600;letter-spacing:-0.01em}
+.topbar .hint{font-size:12px;color:#666;margin-left:auto}
+.container{max-width:880px;margin:0 auto;padding:24px}
+.input-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:22px 26px;margin-bottom:16px}
+#latexInput{width:100%;min-height:120px;border:1px solid #333;border-radius:8px;padding:16px;font-family:'SF Mono','Consolas','Courier New',monospace;font-size:13px;resize:vertical;outline:none;line-height:1.7;tab-size:2;background:#111;color:#ddd;caret-color:#fff}
+#latexInput:focus{border-color:#555}
+#latexInput::placeholder{color:#444}
+.btn-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.btn{border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:500;transition:all .15s;padding:10px 22px;letter-spacing:0.01em}
+.btn-go{background:#fff;color:#111}.btn-go:hover{background:#e0e0e0}
+.btn-copy{background:#fff;color:#111;font-size:15px;padding:14px 40px;letter-spacing:0.02em}.btn-copy:hover{background:#e0e0e0}
+.btn-copy:active{transform:scale(.97)}
+.btn-clear{background:transparent;color:#666;border:1px solid #333}.btn-clear:hover{background:#1a1a1a;color:#aaa}
+.btn-hint{font-size:11px;color:#555;margin-left:6px}
+.status{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;margin-left:8px;letter-spacing:0.02em}
+.status-ok{background:#1a1a1a;color:#888;border:1px solid #2a2a2a}
 
-.output-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px}
-.output-label{font-size:13px;font-weight:600;color:#888;margin-bottom:10px}
-.preview{min-height:60px;padding:24px;background:linear-gradient(135deg,#fafffe,#f8fdf9);border-radius:8px;border:1px solid #d4edda;font-size:19px;line-height:2.5;word-break:break-all;overflow-x:auto;font-family:'Cambria Math','Times New Roman','Noto Serif CJK SC','Microsoft YaHei',serif}
+.output-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:22px 26px;margin-bottom:16px}
+.output-label{font-size:12px;font-weight:500;color:#666;margin-bottom:12px;letter-spacing:0.02em;text-transform:uppercase}
+.preview{min-height:60px;padding:32px 36px;background:#111;border-radius:8px;border:1px solid #2a2a2a;font-size:20px;line-height:2.6;word-break:break-all;overflow-x:auto;font-family:'Cambria Math','Latin Modern Math','Times New Roman','Noto Serif CJK SC',serif;color:#eee;letter-spacing:0.02em}
 .preview sub,.preview sup{font-size:.75em}
 .preview .stack{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;font-size:.75em}
-.placeholder{color:#ccc;text-align:center;padding:24px 0;font-size:15px}
+.placeholder{color:#333;text-align:center;padding:24px 0;font-size:14px}
 
-.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:10px}
-.quick-btn{background:#f8f8f8;border:1px solid #eee;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:12px;text-align:left;transition:all .12s;font-family:'Consolas','Courier New',monospace;color:#555}
-.quick-btn:hover{background:#eefdf3;border-color:#07c160;color:#333}
-.quick-btn b{color:#07c160}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-top:12px}
+.quick-btn{background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:11px;text-align:left;transition:all .15s;font-family:'SF Mono','Consolas','Courier New',monospace;color:#888;letter-spacing:0.01em}
+.quick-btn:hover{background:#1a1a1a;border-color:#444;color:#ddd}
+.quick-btn b{color:#fff;font-weight:500}
 
-.help{font-size:13px;color:#999;line-height:2;margin-top:4px}
-.help code{background:#f0f0f0;padding:2px 5px;border-radius:3px;font-size:12px}
-kbd{background:#eee;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px}
+.help{font-size:12px;color:#555;line-height:2;margin-top:6px}
+.help code{background:#1a1a1a;padding:2px 6px;border-radius:3px;font-size:11px;color:#999;border:1px solid #2a2a2a}
+kbd{background:#1a1a1a;border:1px solid #333;border-radius:3px;padding:1px 6px;font-size:10px;color:#888}
 
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:12px 32px;border-radius:24px;font-size:15px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:12px 32px;border-radius:24px;font-size:14px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;font-weight:500}
 .toast.show{opacity:1}
 </style>
 </head>
 <body>
 <div class="topbar">
   <h1>LaTeX 公式转换</h1>
-  <span class="hint">输入 LaTeX，渲染为富文本，复制后粘贴到任意编辑器</span>
+  <span class="hint">输入 LaTeX &middot; 复制 &middot; 粘贴到任意编辑器</span>
 </div>
 
 <div class="container">
   <div class="input-card">
-    <textarea id="latexInput" placeholder="粘贴 LaTeX 公式到这里...&#10;&#10;\frac{-b \pm \sqrt{b^2-4ac}}{2a}&#10;\underbrace{\int dX_t}_{\text{一次积分}}&#10;\hat{\mu} = \bar{X} + \tilde{\sigma}&#10;&#10;Ctrl+Enter 渲染"></textarea>
+    <textarea id="latexInput" placeholder="在此输入 LaTeX 公式...&#10;&#10;例：\frac{-b \pm \sqrt{b^2-4ac}}{2a}&#10;     \int_{a}^{b} f(x)\,dx = F(b)-F(a)&#10;     \hat{\mu} = \bar{X} + \tilde{\sigma}&#10;&#10;Ctrl+Enter 渲染"></textarea>
     <div class="btn-row">
       <button class="btn btn-go" onclick="renderAll()">渲染</button>
       <button class="btn btn-clear" onclick="clearAll()">清空</button>
-      <span class="btn-hint">或按 <kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
+      <span class="btn-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
       <span class="status" id="status"></span>
     </div>
     <div class="quick-grid" id="quickGrid"></div>
   </div>
 
   <div class="output-card">
-    <div class="output-label">渲染结果 &mdash; 选中后 Ctrl+C 复制，Ctrl+V 粘贴到目标编辑器</div>
-    <div class="preview" id="preview"><div class="placeholder">等待渲染...</div></div>
-    <div class="btn-row" style="margin-top:16px;justify-content:center">
+    <div class="output-label">渲染结果</div>
+    <div class="preview" id="preview"><div class="placeholder">等待输入...</div></div>
+    <div class="btn-row" style="margin-top:18px;justify-content:center">
       <button class="btn btn-copy" onclick="copyRich()">复制（保留格式）</button>
     </div>
   </div>
 
   <div class="help">
-    支持：上下标、<code>\frac</code>、<code>\sqrt</code>、<code>\underbrace{}_{}</code>、<code>\sum\int\prod</code>+上下限、<code>\hat\bar\tilde\vec\dot</code>、<code>\left\right</code>、<code>\overset\underset</code>、希腊字母、数学符号、矩阵（方括号近似）、<code>\binom</code>转C(n,k)
+    Supports: subscripts / superscripts &middot; <code>\frac</code> <code>\sqrt</code> &middot; <code>\underbrace{}_{}</code> &middot; <code>\sum\int\prod</code> with limits &middot; <code>\hat\bar\tilde\vec\dot</code> &middot; <code>\left\right</code> &middot; <code>\overset\underset</code> &middot; Greek letters &middot; math symbols &middot; matrices (bracket approx.) &middot; <code>\binom</code> as C(n,k)
   </div>
 </div>
 
@@ -126,32 +127,32 @@ function parse(s){return new Parser(s).parse();}
 function convertLine(s){s=s.trim();if(!s)return'';s=s.replace(/\\\|/g,'‖');s=s.replace(/\\begin\{(pmatrix|bmatrix)\}/g,'[');s=s.replace(/\\begin\{matrix\}/g,'[');s=s.replace(/\\end\{(pmatrix|bmatrix|matrix)\}/g,']');s=s.replace(/\\(displaystyle|textstyle|scriptstyle)\s*/g,'');const r=parse(s);return r.replace(/\s+/g,' ').trim();}
 
 const QUICK=[
-  {l:'Maxwell方程组',t:'\\nabla\\cdot\\mathbf{E}=\\frac{\\rho}{\\varepsilon_0},\\quad\\nabla\\times\\mathbf{E}=-\\frac{\\partial\\mathbf{B}}{\\partial t},\\quad\\nabla\\cdot\\mathbf{B}=0,\\quad\\nabla\\times\\mathbf{B}=\\mu_0\\mathbf{J}+\\mu_0\\varepsilon_0\\frac{\\partial\\mathbf{E}}{\\partial t}'},
-  {l:'Schrodinger方程',t:'i\\hbar\\frac{\\partial}{\\partial t}\\Psi(\\mathbf{r},t)=\\hat{H}\\Psi(\\mathbf{r},t)'},
+  {l:'Maxwell',t:'\\nabla\\cdot\\mathbf{E}=\\frac{\\rho}{\\varepsilon_0},\\quad\\nabla\\times\\mathbf{E}=-\\frac{\\partial\\mathbf{B}}{\\partial t},\\quad\\nabla\\cdot\\mathbf{B}=0,\\quad\\nabla\\times\\mathbf{B}=\\mu_0\\mathbf{J}+\\mu_0\\varepsilon_0\\frac{\\partial\\mathbf{E}}{\\partial t}'},
+  {l:'Schrodinger',t:'i\\hbar\\frac{\\partial}{\\partial t}\\Psi(\\mathbf{r},t)=\\hat{H}\\Psi(\\mathbf{r},t)'},
   {l:'Navier-Stokes',t:'\\rho\\left(\\frac{\\partial\\mathbf{u}}{\\partial t}+\\mathbf{u}\\cdot\\nabla\\mathbf{u}\\right)=-\\nabla p+\\mu\\nabla^2\\mathbf{u}+\\mathbf{f}'},
-  {l:'矩阵乘法',t:'C_{ij}=\\sum_{k=1}^{n}A_{ik}B_{kj}'},
-  {l:'贝叶斯定理',t:'P(A|B)=\\frac{P(B|A)P(A)}{P(B)}'},
-  {l:'信息熵',t:'H(X)=-\\sum_{i=1}^{n}P(x_i)\\log P(x_i)'},
-  {l:'KL散度',t:'D_{\\mathrm{KL}}(P\\|Q)=\\sum_{x}P(x)\\log\\frac{P(x)}{Q(x)}'},
-  {l:'梯度下降',t:'\\theta_{t+1}=\\theta_t-\\eta\\nabla_\\theta\\mathcal{L}(\\theta_t)'},
-  {l:'拉格朗日乘子',t:'\\mathcal{L}(x,\\lambda)=f(x)+\\lambda g(x),\\quad\\nabla\\mathcal{L}=0'},
-  {l:'特征值方程',t:'A\\mathbf{v}=\\lambda\\mathbf{v}'},
-  {l:'泰勒展开',t:'f(x)=\\sum_{n=0}^{\\infty}\\frac{f^{(n)}(a)}{n!}(x-a)^n'},
-  {l:'傅里叶变换',t:'\\hat{f}(\\xi)=\\int_{-\\infty}^{\\infty}f(x)e^{-2\\pi ix\\xi}dx'},
-  {l:'协方差矩阵',t:'\\Sigma_{ij}=\\mathrm{Cov}(X_i,X_j)=E[(X_i-\\mu_i)(X_j-\\mu_j)]'},
-  {l:'正态分布',t:'f(x)=\\frac{1}{\\sigma\\sqrt{2\\pi}}\\exp\\left(-\\frac{(x-\\mu)^2}{2\\sigma^2}\\right)'},
-  {l:'黎曼Zeta',t:'\\zeta(s)=\\sum_{n=1}^{\\infty}\\frac{1}{n^s},\\quad\\mathrm{Re}(s)>1'},
+  {l:'Matrix Multiplication',t:'C_{ij}=\\sum_{k=1}^{n}A_{ik}B_{kj}'},
+  {l:'Bayes',t:'P(A|B)=\\frac{P(B|A)P(A)}{P(B)}'},
+  {l:'Entropy',t:'H(X)=-\\sum_{i=1}^{n}P(x_i)\\log P(x_i)'},
+  {l:'KL Divergence',t:'D_{\\mathrm{KL}}(P\\|Q)=\\sum_{x}P(x)\\log\\frac{P(x)}{Q(x)}'},
+  {l:'Gradient Descent',t:'\\theta_{t+1}=\\theta_t-\\eta\\nabla_\\theta\\mathcal{L}(\\theta_t)'},
+  {l:'Lagrange',t:'\\mathcal{L}(x,\\lambda)=f(x)+\\lambda g(x),\\quad\\nabla\\mathcal{L}=0'},
+  {l:'Eigenvalue',t:'A\\mathbf{v}=\\lambda\\mathbf{v}'},
+  {l:'Taylor',t:'f(x)=\\sum_{n=0}^{\\infty}\\frac{f^{(n)}(a)}{n!}(x-a)^n'},
+  {l:'Fourier',t:'\\hat{f}(\\xi)=\\int_{-\\infty}^{\\infty}f(x)e^{-2\\pi ix\\xi}dx'},
+  {l:'Covariance',t:'\\Sigma_{ij}=\\mathrm{Cov}(X_i,X_j)=E[(X_i-\\mu_i)(X_j-\\mu_j)]'},
+  {l:'Normal Dist.',t:'f(x)=\\frac{1}{\\sigma\\sqrt{2\\pi}}\\exp\\left(-\\frac{(x-\\mu)^2}{2\\sigma^2}\\right)'},
+  {l:'Riemann Zeta',t:'\\zeta(s)=\\sum_{n=1}^{\\infty}\\frac{1}{n^s},\\quad\\mathrm{Re}(s)>1'},
 ];
 
 document.getElementById('quickGrid').innerHTML=QUICK.map(f=>`<button class="quick-btn" onclick="insertQuick('${f.t.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')"><b>${f.l}</b></button>`).join('');
 
 function insertQuick(t){document.getElementById('latexInput').value=t;renderAll();}
 
-function renderAll(){const input=document.getElementById('latexInput').value.trim();const preview=document.getElementById('preview');const status=document.getElementById('status');if(!input){preview.innerHTML='<div class="placeholder">等待渲染...</div>';status.textContent='';return;}const lines=input.split('\n');const result=lines.map(l=>l.trim()?convertLine(l):'').join('\n');preview.innerHTML=result||'<div class="placeholder">(空)</div>';status.textContent='已渲染';status.className='status status-ok';}
+function renderAll(){const input=document.getElementById('latexInput').value.trim();const preview=document.getElementById('preview');const status=document.getElementById('status');if(!input){preview.innerHTML='<div class="placeholder">Waiting for input&hellip;</div>';status.textContent='';return;}const lines=input.split('\n');const result=lines.map(l=>l.trim()?convertLine(l):'').join('\n');preview.innerHTML=result||'<div class="placeholder">空</div>';status.textContent='已渲染';status.className='status status-ok';}
 
-function copyRich(){const preview=document.getElementById('preview');const html=preview.innerHTML;if(!html.trim()||html.includes('等待渲染')){toast('请先渲染公式');return;}const blob=new Blob([html],{type:'text/html'});const item=new ClipboardItem({'text/html':blob});navigator.clipboard.write([item]).then(()=>toast('已复制')).catch(()=>{const range=document.createRange();range.selectNodeContents(preview);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);document.execCommand('copy');toast('已复制');});}
+function copyRich(){const preview=document.getElementById('preview');const html=preview.innerHTML;if(!html.trim()||html.includes('Waiting')){toast('请先渲染');return;}const blob=new Blob([html],{type:'text/html'});const item=new ClipboardItem({'text/html':blob});navigator.clipboard.write([item]).then(()=>toast('已复制')).catch(()=>{const range=document.createRange();range.selectNodeContents(preview);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);document.execCommand('copy');toast('已复制');});}
 
-function clearAll(){document.getElementById('latexInput').value='';document.getElementById('preview').innerHTML='<div class="placeholder">等待渲染...</div>';document.getElementById('status').textContent='';}
+function clearAll(){document.getElementById('latexInput').value='';document.getElementById('preview').innerHTML='<div class="placeholder">Waiting for input&hellip;</div>';document.getElementById('status').textContent='';}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 document.getElementById('latexInput').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();renderAll();}});
 </script>
