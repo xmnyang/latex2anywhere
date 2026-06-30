@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LaTeX 公式转换</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid #e8e8e8;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.topbar h1{font-size:18px;color:#07c160;white-space:nowrap}
+.topbar .hint{font-size:12px;color:#999;margin-left:auto}
+.container{max-width:900px;margin:0 auto;padding:20px}
+.input-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px}
+#latexInput{width:100%;min-height:120px;border:2px solid #e0e0e0;border-radius:8px;padding:14px;font-family:'Consolas','Courier New',monospace;font-size:14px;resize:vertical;outline:none;line-height:1.7;tab-size:2}
+#latexInput:focus{border-color:#07c160}
+.btn-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.btn{border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500;transition:all .15s;padding:10px 22px}
+.btn-go{background:#07c160;color:#fff}.btn-go:hover{background:#06ad56}
+.btn-copy{background:#1a1a1a;color:#fff;font-size:16px;padding:14px 40px}.btn-copy:hover{background:#333}
+.btn-copy:active{transform:scale(.96)}
+.btn-clear{background:#f0f0f0;color:#555}.btn-clear:hover{background:#e0e0e0}
+.btn-hint{font-size:12px;color:#999;margin-left:4px}
+.status{display:inline-block;padding:4px 12px;border-radius:10px;font-size:12px;margin-left:8px}
+.status-ok{background:#e8f5e9;color:#2e7d32}
+
+.output-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px}
+.output-label{font-size:13px;font-weight:600;color:#888;margin-bottom:10px}
+.preview{min-height:60px;padding:24px;background:linear-gradient(135deg,#fafffe,#f8fdf9);border-radius:8px;border:1px solid #d4edda;font-size:19px;line-height:2.5;word-break:break-all;overflow-x:auto;font-family:'Cambria Math','Times New Roman','Noto Serif CJK SC','Microsoft YaHei',serif}
+.preview sub,.preview sup{font-size:.75em}
+.preview .stack{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;font-size:.75em}
+.placeholder{color:#ccc;text-align:center;padding:24px 0;font-size:15px}
+
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:10px}
+.quick-btn{background:#f8f8f8;border:1px solid #eee;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:12px;text-align:left;transition:all .12s;font-family:'Consolas','Courier New',monospace;color:#555}
+.quick-btn:hover{background:#eefdf3;border-color:#07c160;color:#333}
+.quick-btn b{color:#07c160}
+
+.help{font-size:13px;color:#999;line-height:2;margin-top:4px}
+.help code{background:#f0f0f0;padding:2px 5px;border-radius:3px;font-size:12px}
+kbd{background:#eee;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:12px 32px;border-radius:24px;font-size:15px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>LaTeX 公式转换</h1>
+  <span class="hint">输入 LaTeX，渲染为富文本，复制后粘贴到任意编辑器</span>
+</div>
+
+<div class="container">
+  <div class="input-card">
+    <textarea id="latexInput" placeholder="粘贴 LaTeX 公式到这里...&#10;&#10;\frac{-b \pm \sqrt{b^2-4ac}}{2a}&#10;\underbrace{\int dX_t}_{\text{一次积分}}&#10;\hat{\mu} = \bar{X} + \tilde{\sigma}&#10;&#10;Ctrl+Enter 渲染"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-go" onclick="renderAll()">渲染</button>
+      <button class="btn btn-clear" onclick="clearAll()">清空</button>
+      <span class="btn-hint">或按 <kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
+      <span class="status" id="status"></span>
+    </div>
+    <div class="quick-grid" id="quickGrid"></div>
+  </div>
+
+  <div class="output-card">
+    <div class="output-label">渲染结果 &mdash; 选中后 Ctrl+C 复制，Ctrl+V 粘贴到目标编辑器</div>
+    <div class="preview" id="preview"><div class="placeholder">等待渲染...</div></div>
+    <div class="btn-row" style="margin-top:16px;justify-content:center">
+      <button class="btn btn-copy" onclick="copyRich()">复制（保留格式）</button>
+    </div>
+  </div>
+
+  <div class="help">
+    支持：上下标、<code>\frac</code>、<code>\sqrt</code>、<code>\underbrace{}_{}</code>、<code>\sum\int\prod</code>+上下限、<code>\hat\bar\tilde\vec\dot</code>、<code>\left\right</code>、<code>\overset\underset</code>、希腊字母、数学符号、矩阵（方括号近似）、<code>\binom</code>转C(n,k)
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GREEK={alpha:'α',beta:'β',gamma:'γ',delta:'δ',epsilon:'ε',zeta:'ζ',eta:'η',theta:'θ',iota:'ι',kappa:'κ',lambda:'λ',mu:'μ',nu:'ν',xi:'ξ',omicron:'ο',pi:'π',rho:'ρ',sigma:'σ',tau:'τ',upsilon:'υ',phi:'φ',chi:'χ',psi:'ψ',omega:'ω',varepsilon:'ε',vartheta:'ϑ',varphi:'ϕ',varpi:'ϖ',varrho:'ϱ',varsigma:'ς'};
+const GREEK_UP={Alpha:'Α',Beta:'Β',Gamma:'Γ',Delta:'Δ',Epsilon:'Ε',Zeta:'Ζ',Eta:'Η',Theta:'Θ',Iota:'Ι',Kappa:'Κ',Lambda:'Λ',Mu:'Μ',Nu:'Ν',Xi:'Ξ',Omicron:'Ο',Pi:'Π',Rho:'Ρ',Sigma:'Σ',Tau:'Τ',Upsilon:'Υ',Phi:'Φ',Chi:'Χ',Psi:'Ψ',Omega:'Ω'};
+const SYMS={'pm':'±','mp':'∓','times':'×','div':'÷','cdot':'·','ast':'∗','circ':'∘','bullet':'•','setminus':'∖','cap':'∩','cup':'∪','wedge':'∧','vee':'∨','oplus':'⊕','ominus':'⊖','otimes':'⊗','oslash':'⊘','odot':'⊙','dagger':'†','ddagger':'‡','leq':'≤','ge':'≥','geq':'≥','neq':'≠','equiv':'≡','approx':'≈','sim':'∼','simeq':'≃','cong':'≅','propto':'∝','mid':'∣','parallel':'∥','perp':'⊥','prec':'≺','succ':'≻','preceq':'≼','succeq':'≽','ll':'≪','gg':'≫','subset':'⊂','supset':'⊃','subseteq':'⊆','supseteq':'⊇','in':'∈','ni':'∋','notin':'∉','to':'→','rightarrow':'→','Rightarrow':'⇒','longrightarrow':'⟶','leftarrow':'←','Leftarrow':'⇐','longleftarrow':'⟵','leftrightarrow':'↔','Leftrightarrow':'⇔','longleftrightarrow':'⟷','uparrow':'↑','downarrow':'↓','updownarrow':'↕','mapsto':'↦','longmapsto':'⟼','nearrow':'↗','searrow':'↘','nwarrow':'↖','swarrow':'↙','infty':'∞','partial':'∂','nabla':'∇','forall':'∀','exists':'∃','nexists':'∄','emptyset':'∅','varnothing':'∅','Re':'ℜ','Im':'ℑ','aleph':'ℵ','hbar':'ℏ','ell':'ℓ','top':'⊤','bot':'⊥','square':'□','angle':'∠','triangle':'△','deg':'°','prime':'′','pprime':'″','cdots':'⋯','vdots':'⋮','ddots':'⋱','ldots':'…','dots':'…','therefore':'∴','because':'∵','lfloor':'⌊','rfloor':'⌋','lceil':'⌈','rceil':'⌉','langle':'⟨','rangle':'⟩'};
+const BIGOP={int:'∫',iint:'∬',iiint:'∭',oint:'∮',sum:'∑',prod:'∏',coprod:'∐',bigcup:'⋃',bigcap:'⋂',bigvee:'⋁',bigwedge:'⋀',bigoplus:'⨁',bigotimes:'⨂',bigodot:'⨀'};
+const FONT=new Set(['text','mathrm','mathbf','mathit','mathsf','mathtt','mathcal','mathbb','boldsymbol','textrm','textit','textbf','operatorname']);
+const SKIPMOD=new Set(['limits','nolimits','displaylimits']);
+const SPACE=new Set([',',';','!',' ','quad','qquad']);
+const FRAC={'1/2':'½','1/3':'⅓','2/3':'⅔','1/4':'¼','3/4':'¾','1/5':'⅕','2/5':'⅖','3/5':'⅗','4/5':'⅘','1/6':'⅙','5/6':'⅚','1/7':'⅐','1/8':'⅛','3/8':'⅜','5/8':'⅝','7/8':'⅞','1/9':'⅑','1/10':'⅒'};
+const ACCENTS={hat:'̂',bar:'̄',tilde:'̃',vec:'⃗',dot:'̇',ddot:'̈',widehat:'̂',widetilde:'̃',overline:'̅',underline:'̲',breve:'̆',check:'̌',acute:'́',grave:'̀'};
+const ACCENTS_SET=new Set(Object.keys(ACCENTS));
+
+function tagSup(s){return`<sup>${s}</sup>`}
+function tagSub(s){return`<sub>${s}</sub>`}
+function stackSS(sup,sub){return`<span class="stack"><span>${sup}</span><span>${sub}</span></span>`}
+
+class Parser{
+  constructor(s){this.s=s;this.i=0;this.n=s.length}
+  peek(){return this.i<this.n?this.s[this.i]:null}
+  consume(){return this.s[this.i++]}
+  eof(){return this.i>=this.n}
+  braceGroup(){this.i++;let d=1,start=this.i;while(this.i<this.n&&d>0){if(this.s[this.i]==='{')d++;else if(this.s[this.i]==='}')d--;if(d>0)this.i++;}const c=this.s.substring(start,this.i);if(this.peek()==='}')this.i++;return c;}
+  optBracket(){if(this.peek()==='['){this.i++;let d=1,start=this.i;while(this.i<this.n&&d>0){if(this.s[this.i]==='[')d++;else if(this.s[this.i]===']')d--;if(d>0)this.i++;}const r=this.s.substring(start,this.i);if(this.peek()===']')this.i++;return r;}return null;}
+  optBrace(){if(this.peek()==='{'){const inner=this.braceGroup();return parse(inner);}return null;}
+  scriptArg(){const c=this.peek();if(c===null)return null;if(c==='{'){const inner=this.braceGroup();return parse(inner);}if(!/\s/.test(c)){this.i++;return c;}return null;}
+
+  parseCommand(){
+    let cmd='';while(this.i<this.n&&/[a-zA-Z]/.test(this.s[this.i]))cmd+=this.s[this.i++];
+    if(cmd in BIGOP){const sym=BIGOP[cmd];while(this.peek()==='\\'){const save=this.i;this.i++;let mod='';while(this.i<this.n&&/[a-zA-Z]/.test(this.s[this.i]))mod+=this.s[this.i++];if(SKIPMOD.has(mod))continue;this.i=save;break;}let sub='',sup='';for(let r=0;r<2;r++){const p=this.peek();if(p==='_'){this.i++;const a=this.scriptArg();if(a!==null)sub=a;continue}if(p==='^'){this.i++;const a=this.scriptArg();if(a!==null)sup=a;continue}break;}let result=sym;if(sup&&sub){result+=stackSS(sup,sub);}else{if(sup)result+=tagSup(sup);if(sub)result+=tagSub(sub);}return result;}
+    if(cmd==='frac'){const num=this.optBrace(),den=this.optBrace();if(num!==null&&den!==null){const k=num+'/'+den;if(FRAC[k])return FRAC[k];return`(${num})/(${den})`;}return'?frac?';}
+    if(cmd==='sqrt'){const n=this.optBracket(),body=this.optBrace();const inner=body!==null?body:'?';if(n!==null)return`${parse(n)}√(${inner})`;return`√(${inner})`;}
+    if(cmd==='underbrace'||cmd==='overbrace'){const body=this.optBrace();let label='';const trig=cmd==='underbrace'?'_':'^';if(body!==null&&this.peek()===trig){this.i++;const lab=this.scriptArg();if(lab!==null)label=lab;}const bu=body!==null?body:'?';if(label)return`${bu}〔${label}〕`;return bu;}
+    if(cmd==='overset'){const top=this.optBrace(),bot=this.optBrace();if(top!==null&&bot!==null)return bot+tagSup(top);return'?overset?';}
+    if(cmd==='underset'){const bot=this.optBrace(),top=this.optBrace();if(top!==null&&bot!==null){if(bot.trim()==='⏟')return top;return`${top}〔${bot}〕`;}return'?underset?';}
+    if(cmd==='binom'){const n=this.optBrace(),k=this.optBrace();if(n!==null&&k!==null)return`C(${n},${k})`;return'?binom?';}
+    if('left right middle big Big bigg Bigg bigl Bigl biggl Biggl bigr Bigr biggr Biggr mleft mright'.split(' ').includes(cmd)){const p=this.peek();if(p==='.')this.i++;else if(p==='\\'){this.i++;const c2=this.peek();return(c2&&!/[a-zA-Z]/.test(c2))?this.consume():this.parseCommand();}else if(p!==null&&!/\s/.test(p)){this.i++;return p;}return'';}
+    if(FONT.has(cmd)){const body=this.optBrace();return body!==null?body:'';}
+    if(SPACE.has(cmd)){if(cmd==='quad')return'  ';if(cmd==='qquad')return'    ';return'';}
+    if(ACCENTS_SET.has(cmd)){const arg=this.scriptArg()||this.optBrace();if(arg!==null)return arg+ACCENTS[cmd];return ACCENTS[cmd];}
+    if(cmd in GREEK)return GREEK[cmd];if(cmd in GREEK_UP)return GREEK_UP[cmd];if(cmd in SYMS)return SYMS[cmd];
+    return cmd;
+  }
+
+  parse(){const result=[];while(!this.eof()){const c=this.peek();if(c==='\\'){this.i++;if(this.peek()==='\\'){this.i++;result.push('\n');continue}if(this.peek()==='|'){this.i++;result.push('‖');continue}if('{}_^$#%&~'.includes(this.peek())){result.push(this.consume());continue}if(',;! '.includes(this.peek())){this.i++;continue}result.push(this.parseCommand());continue}if(c==='^'||c==='_'){const isSup=c==='^';this.i++;const arg1=this.scriptArg();if(arg1===null)continue;const nxt=this.peek();if(nxt&&nxt!==c&&(nxt==='^'||nxt==='_')){this.i++;const arg2=this.scriptArg();if(arg2!==null){const supArg=isSup?arg1:arg2;const subArg=isSup?arg2:arg1;result.push(stackSS(supArg,subArg));continue;}}result.push(isSup?tagSup(arg1):tagSub(arg1));continue}if(c==='{'){const inner=this.braceGroup();result.push(parse(inner));continue}if(c==='}')break;result.push(c);this.i++;}return result.join('');}
+}
+function parse(s){return new Parser(s).parse();}
+function convertLine(s){s=s.trim();if(!s)return'';s=s.replace(/\\\|/g,'‖');s=s.replace(/\\begin\{(pmatrix|bmatrix)\}/g,'[');s=s.replace(/\\begin\{matrix\}/g,'[');s=s.replace(/\\end\{(pmatrix|bmatrix|matrix)\}/g,']');s=s.replace(/\\(displaystyle|textstyle|scriptstyle)\s*/g,'');const r=parse(s);return r.replace(/\s+/g,' ').trim();}
+
+const QUICK=[
+  {l:'Maxwell方程组',t:'\\nabla\\cdot\\mathbf{E}=\\frac{\\rho}{\\varepsilon_0},\\quad\\nabla\\times\\mathbf{E}=-\\frac{\\partial\\mathbf{B}}{\\partial t},\\quad\\nabla\\cdot\\mathbf{B}=0,\\quad\\nabla\\times\\mathbf{B}=\\mu_0\\mathbf{J}+\\mu_0\\varepsilon_0\\frac{\\partial\\mathbf{E}}{\\partial t}'},
+  {l:'Schrodinger方程',t:'i\\hbar\\frac{\\partial}{\\partial t}\\Psi(\\mathbf{r},t)=\\hat{H}\\Psi(\\mathbf{r},t)'},
+  {l:'Navier-Stokes',t:'\\rho\\left(\\frac{\\partial\\mathbf{u}}{\\partial t}+\\mathbf{u}\\cdot\\nabla\\mathbf{u}\\right)=-\\nabla p+\\mu\\nabla^2\\mathbf{u}+\\mathbf{f}'},
+  {l:'矩阵乘法',t:'C_{ij}=\\sum_{k=1}^{n}A_{ik}B_{kj}'},
+  {l:'贝叶斯定理',t:'P(A|B)=\\frac{P(B|A)P(A)}{P(B)}'},
+  {l:'信息熵',t:'H(X)=-\\sum_{i=1}^{n}P(x_i)\\log P(x_i)'},
+  {l:'KL散度',t:'D_{\\mathrm{KL}}(P\\|Q)=\\sum_{x}P(x)\\log\\frac{P(x)}{Q(x)}'},
+  {l:'梯度下降',t:'\\theta_{t+1}=\\theta_t-\\eta\\nabla_\\theta\\mathcal{L}(\\theta_t)'},
+  {l:'拉格朗日乘子',t:'\\mathcal{L}(x,\\lambda)=f(x)+\\lambda g(x),\\quad\\nabla\\mathcal{L}=0'},
+  {l:'特征值方程',t:'A\\mathbf{v}=\\lambda\\mathbf{v}'},
+  {l:'泰勒展开',t:'f(x)=\\sum_{n=0}^{\\infty}\\frac{f^{(n)}(a)}{n!}(x-a)^n'},
+  {l:'傅里叶变换',t:'\\hat{f}(\\xi)=\\int_{-\\infty}^{\\infty}f(x)e^{-2\\pi ix\\xi}dx'},
+  {l:'协方差矩阵',t:'\\Sigma_{ij}=\\mathrm{Cov}(X_i,X_j)=E[(X_i-\\mu_i)(X_j-\\mu_j)]'},
+  {l:'正态分布',t:'f(x)=\\frac{1}{\\sigma\\sqrt{2\\pi}}\\exp\\left(-\\frac{(x-\\mu)^2}{2\\sigma^2}\\right)'},
+  {l:'黎曼Zeta',t:'\\zeta(s)=\\sum_{n=1}^{\\infty}\\frac{1}{n^s},\\quad\\mathrm{Re}(s)>1'},
+];
+
+document.getElementById('quickGrid').innerHTML=QUICK.map(f=>`<button class="quick-btn" onclick="insertQuick('${f.t.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')"><b>${f.l}</b></button>`).join('');
+
+function insertQuick(t){document.getElementById('latexInput').value=t;renderAll();}
+
+function renderAll(){const input=document.getElementById('latexInput').value.trim();const preview=document.getElementById('preview');const status=document.getElementById('status');if(!input){preview.innerHTML='<div class="placeholder">等待渲染...</div>';status.textContent='';return;}const lines=input.split('\n');const result=lines.map(l=>l.trim()?convertLine(l):'').join('\n');preview.innerHTML=result||'<div class="placeholder">(空)</div>';status.textContent='已渲染';status.className='status status-ok';}
+
+function copyRich(){const preview=document.getElementById('preview');const html=preview.innerHTML;if(!html.trim()||html.includes('等待渲染')){toast('请先渲染公式');return;}const blob=new Blob([html],{type:'text/html'});const item=new ClipboardItem({'text/html':blob});navigator.clipboard.write([item]).then(()=>toast('已复制')).catch(()=>{const range=document.createRange();range.selectNodeContents(preview);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);document.execCommand('copy');toast('已复制');});}
+
+function clearAll(){document.getElementById('latexInput').value='';document.getElementById('preview').innerHTML='<div class="placeholder">等待渲染...</div>';document.getElementById('status').textContent='';}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+document.getElementById('latexInput').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();renderAll();}});
+</script>
+</body>
+</html>
